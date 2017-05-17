@@ -134,7 +134,7 @@ func createVolume(
 }
 
 func formatPartition(partition *Partition) {
-	partition.FilesystemType {
+	switch partition.FilesystemType {
 	case "vfat":
 		formatVFAT(partition)
 	case "ext2", "ext4":
@@ -173,7 +173,7 @@ func formatEXT(partition *Partition) {
 		opts = append(opts, "-L", partition.Label)
 	}
 
-	if partition.Type == "coreos-usr" {
+	if partition.TypeGUID == "coreos-usr" {
 		opts = append(
 			opts, "-U", "clear", "-T", "20091119110000", "-c", "0", "-i", "0",
 			"-m", "0", "-r", "0")
@@ -186,7 +186,7 @@ func formatEXT(partition *Partition) {
 }
 
 func formatBTRFS(partition *Partition) {
-	opts := []string{"--byte-count", partition.Length}
+	opts := []string{"--byte-count", strconv.FormatInt(partition.Length, 10)}
 	if partition.Label != "" {
 		opts = append(opts, "--label", partition.Label)
 	}
