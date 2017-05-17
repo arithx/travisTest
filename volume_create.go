@@ -62,6 +62,13 @@ func parseYAML() []*Partition {
     }
     p := []*Partition{}
     err = yaml.Unmarshal(dat, &p)
+
+	for _, part := range p {
+		if part.GUID == "" {
+			part.GUID = generateUUID()
+		}
+	}
+
 	return p
 }
 
@@ -118,6 +125,13 @@ func createVolume(
 }
 
 func createPartitionTable(fileName string, partitions []*Partition) {
+	//cpgtCreate, err := exec.Command("/")
+	for _, part := range partitions {
+		fmt.Println(part.Label)
+	}
+}
+
+func createPartitionTableSgdisk(fileName string, partitions []*Partition) {
 	opts := []string{fileName, "--zap-all", "-g"}
 	for _, p := range partitions {
 		opts = append(opts, fmt.Sprintf(
@@ -163,6 +177,14 @@ func removeEmpty(strings []string) []string {
 		}
 	}
 	return r
+}
+
+func generateUUID() string {
+	out, err := exec.Command("/bin/uuidgen").CombinedOutput()
+	if err != nil {
+		fmt.Println("uuidgen", err)
+	}
+	return string(output)
 }
 
 func createFiles(partitions []*Partition) {
