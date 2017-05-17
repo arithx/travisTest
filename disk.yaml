@@ -1,5 +1,5 @@
 - number: 1
-  label: EXT4 Part1
+  label: EXT4-Part1
   length: 1048577
   filesystemtype: ext4
   typecode: coreos-resize
@@ -19,19 +19,19 @@
   - name: noPath
     path: ""
 - number: 2
-  label: VFAT Part
+  label: VFAT-Part
   length: 1348577
   filesystemtype: vfat
   typecode: data
   files: []
 - number: 3
-  label: Ext2 Part
+  label: Ext2-Part
   length: 1548577
   filesystemtype: ext2
   typecode: coreos-rootfs
   files: []
 - number: 4
-  label: Ext4 Part2
+  label: Ext4-Part2
   length: 1848577
   filesystemtype: ext4
   typecode: efi
