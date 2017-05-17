@@ -241,7 +241,7 @@ func createPartitionTable(fileName string, partitions []*Partition) {
 			"--new=%d:%d:%d", p.Number, p.Offset/512,
 			(p.Offset/512 + p.Length/512)))
 		opts = append(opts, fmt.Sprintf(
-			"--change-name=%d:\"%s\"", p.Number, p.Label))
+			"--change-name=%d:'%s'", p.Number, p.Label))
 		if p.TypeGUID != "" {
 			opts = append(opts, fmt.Sprintf(
 				"--typecode=%d:%s", p.Number, p.TypeGUID))
