@@ -24,8 +24,8 @@ type Partition struct {
 	TypeGUID      string `yaml:"typeguid,omitempty"`
 	GUID          string `yaml:"guid,omitempty"`
 	Device        string `yaml:"device,omitempty"`
-	Offset        int64 `yaml:"offset"`
-	Length        int64 `yaml:"length"`
+	Offset        int `yaml:"offset,omitempty"`
+	Length        int `yaml:"length"`
 	FilesystemType string `yaml:"filesystemtype"`
 	MountPath     string `yaml:"mountpath,omitempty"`
 	Hybrid		  bool `yaml:hybrid,omitempty`
@@ -69,8 +69,10 @@ func parseYAML() []*Partition {
 		if part.GUID == "" {
 			part.GUID = generateUUID()
 		}
-		align(part)
+		updateTypeGUID(part)
 	}
+
+	setOffsets(p)
 
 	return p
 }
@@ -115,8 +117,8 @@ func createVolume(
 			partition.Device = strings.TrimSpace(string(device))
 		}
 		losetupOut, err := exec.Command(
-			"/sbin/losetup", "-o", strconv.FormatInt(partition.Offset, 10),
-			"--sizelimit", strconv.FormatInt(partition.Length, 10),
+			"/sbin/losetup", "-o", strconv.Itoa(partition.Offset),
+			"--sizelimit", strconv.Itoa(partition.Length),
 			partition.Device, fileName).CombinedOutput()
 		if err != nil {
 			fmt.Println("losetup", err, string(losetupOut), partition.Device)
@@ -152,7 +154,7 @@ func formatVFAT(partition *Partition) {
 		opts = append(opts, "-n", partition.Label)
 	}
 	opts = append(
-		opts, partition.Device, strconv.FormatInt(partition.Length, 10))
+		opts, partition.Device, strconv.Itoa(partition.Length/4096))
 	out, err := exec.Command("/sbin/mkfs.vfat", opts...).CombinedOutput()
 	if err != nil {
 		fmt.Println("mkfs.vfat", err, string(out))
@@ -163,7 +165,7 @@ func formatEXT(partition *Partition) {
 	out, err := exec.Command(
 		"/sbin/mke2fs", "-q", "-t", partition.FilesystemType, "-b", "4096",
 		"-i", "4096", "-I", "128", partition.Device,
-		strconv.FormatInt(partition.Length, 10)).CombinedOutput()
+		strconv.Itoa(partition.Length/4096)).CombinedOutput()
 	if err != nil {
 		fmt.Println("mke2fs", err, string(out))
 	}
@@ -186,7 +188,7 @@ func formatEXT(partition *Partition) {
 }
 
 func formatBTRFS(partition *Partition) {
-	opts := []string{"--byte-count", strconv.FormatInt(partition.Length, 10)}
+	opts := []string{"--byte-count", strconv.Itoa(partition.Length/4096)}
 	if partition.Label != "" {
 		opts = append(opts, "--label", partition.Label)
 	}
@@ -199,10 +201,20 @@ func formatBTRFS(partition *Partition) {
 	// todo: subvolumes?
 }
 
-func align(partition *Partition) {
-	offset := partition.Offset % 2048
+func align(count int, alignment int) int {
+	offset := count % alignment
 	if offset != 0 {
-		partition.Offset += 2048 - offset
+		count += alignment - offset
+	}
+	return count
+}
+
+func setOffsets(partitions []*Partition) {
+	offset := 34
+	for _, p := range partitions {
+		offset = align(offset, 4096)
+		p.Offset = offset * 512
+		offset += p.Length / 512
 	}
 }
 
@@ -214,7 +226,8 @@ func createPartitionTable(fileName string, partitions []*Partition) {
 			continue
 		}
 		opts = append(opts, fmt.Sprintf(
-			"--new=%d:%d:%d", p.Number, p.Offset/512, p.Length/512))
+			"--new=%d:%d:%d", p.Number, p.Offset/512,
+			(p.Offset/512 + p.Length/512)))
 		opts = append(opts, fmt.Sprintf(
 			"--change-name=%d:\"%s\"", p.Number, p.Label))
 		if p.TypeGUID != "" {
@@ -236,6 +249,7 @@ func createPartitionTable(fileName string, partitions []*Partition) {
 			opts = append(opts, fmt.Sprintf("-h=%s", intJoin(hybrids, ":")))
 		}
 	}
+	fmt.Println("/sbin/sgdisk", strings.Join(opts, " "))
 	sgdiskOut, err := exec.Command(
 		"/sbin/sgdisk", opts...).CombinedOutput()
 	if err != nil {
@@ -255,6 +269,25 @@ func mountPartitions(partitions []*Partition) {
 		if err != nil {
 			fmt.Println("mount", err, string(mountOut))
 		}
+	}
+}
+
+func updateTypeGUID(partition *Partition) {
+	switch partition.TypeGUID {
+	case "coreos-resize":
+		partition.TypeGUID = "3884DD41-8582-4404-B9A8-E9B84F2DF50E"
+	case "data":
+		partition.TypeGUID = "0FC63DAF-8483-4772-8E79-3D69D8477DE4"
+	case "coreos-rootfs":
+		partition.TypeGUID = "5DFBF5F4-2848-4BAC-AA5E-0D9A20B745A6"
+	case "bios":
+		partition.TypeGUID = "21686148-6449-6E6F-744E-656564454649"
+	case "efi":
+		partition.TypeGUID = "C12A7328-F81F-11D2-BA4B-00A0C93EC93B"
+	case "":
+		return
+	default:
+		fmt.Println("Unknown TypeCode", partition.TypeGUID)
 	}
 }
 
