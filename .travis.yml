@@ -4,5 +4,4 @@ before_install:
     - sudo apt-get update
     - sudo apt-get install gdisk
 script:
-    - echo $(which uuidgen)
     - sudo -E $(which go) run volume_create.go

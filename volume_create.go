@@ -136,6 +136,7 @@ func align(partition *Partition) {
 
 func createPartitionTable(fileName string, partitions []*Partition) {
 	opts := []string{fileName, "--zap-all", "-g"}
+	hybrids := []int{}
 	for _, p := range partitions {
 		opts = append(opts, fmt.Sprintf(
 			"--new=%d:%d:%d", p.Number, p.Offset/512, p.Length/512))
@@ -150,7 +151,14 @@ func createPartitionTable(fileName string, partitions []*Partition) {
 				"--partition-guid=%d:%s", p.Number, p.GUID))
 		}
 		if p.Hybrid {
-			opts = append(opts, fmt.Sprintf("-A=%d:set:2", p.Number))
+			hybrids = append(hybrids, p.Number)
+		}
+	}
+	if len(hybrids) > 0 {
+		if len(hybrids) > 3 {
+			fmt.Println("Can't have more than three hybrids")
+		} else {
+			opts = append(opts, fmt.Sprintf("-h=%s", intJoin(hybrids, ":")))
 		}
 	}
 	sgdiskOut, err := exec.Command(
@@ -175,6 +183,14 @@ func mountPartitions(partitions []*Partition) {
 	}
 }
 
+func intJoin(ints []int, delimiter string) string {
+	strArr := []string{}
+	for _, i := range ints {
+		strArr = append(strArr, strconv.Itoa(i))
+	}
+	return strings.Join(strArr, delimiter)
+}
+
 func removeEmpty(strings []string) []string {
 	var r []string
 	for _, str := range strings {
@@ -186,7 +202,7 @@ func removeEmpty(strings []string) []string {
 }
 
 func generateUUID() string {
-	out, err := exec.Command("/bin/uuidgen").CombinedOutput()
+	out, err := exec.Command("/usr/bin/uuidgen").CombinedOutput()
 	if err != nil {
 		fmt.Println("uuidgen", err)
 	}
