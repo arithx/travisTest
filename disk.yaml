@@ -1,6 +1,5 @@
 - number: 1
   label: EXT4 Part1
-  device: /dev/loop6
   offset: 1048576
   length: 5160448
   formatcommand: /sbin/mkfs.ext4
@@ -21,21 +20,18 @@
     path: ""
 - number: 2
   label: VFAT Part
-  device: /dev/loop2
   offset: 5160960
   length: 7740928
   formatcommand: /sbin/mkfs.vfat
   files: []
 - number: 3
   label: Ext2 Part
-  device: /dev/loop3
   offset: 7741440
   length: 9289216
   formatcommand: /sbin/mkfs.ext2
   files: []
 - number: 4
   label: Ext4 Part2
-  device: /dev/loop5
   offset: 9321984
   length: 10321408
   formatcommand: /sbin/mkfs.ext4

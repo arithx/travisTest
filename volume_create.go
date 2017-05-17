@@ -23,7 +23,7 @@ type Partition struct {
 	Label         string `yaml:"label"`
 	TypeGUID      string `yaml:"typeguid,omitempty"`
 	GUID          string `yaml:"guid,omitempty"`
-	Device        string `yaml:"device"`
+	Device        string `yaml:"device,omitempty"`
 	Offset        int64 `yaml:"offset"`
 	Length        int64 `yaml:"length"`
 	FormatCommand string `yaml:"formatcommand"`
@@ -34,8 +34,8 @@ type Partition struct {
 
 func main() {
     partitions := parseYAML()
-	dumpYAML(partitions)
 	createVolume("test.img", 10*1024*1024, 20, 16, 63, partitions)
+	dumpYAML(partitions)
 	mountPartitions(partitions)
 	createFiles(partitions)
 	//unmountPartitions(partitions)
@@ -104,6 +104,13 @@ func createVolume(
 	// loopback device, then partition the block, create the mnt directory,
 	// and update the mntPath in the partitions struct
 	for counter, partition := range partitions {
+		if if partition.Device == "" {
+			device, err := exec.Command("/sbin/losetup", "--find").CombinedOutput()
+			if err != nil {
+				fmt.Println("losetup --find", err)
+			}
+			partition.Device = strings.TrimSpace(device)
+		}
 		losetupOut, err := exec.Command(
 			"/sbin/losetup", "-o", strconv.FormatInt(partition.Offset, 10),
 			"--sizelimit", strconv.FormatInt(partition.Length, 10),
