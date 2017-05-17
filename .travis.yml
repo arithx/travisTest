@@ -1,5 +1,4 @@
 language: go
 sudo: required
 script:
-    - go install
-    - sudo $GOPATH/bin/volume_create
+    - sudo -E go run volume_create.go

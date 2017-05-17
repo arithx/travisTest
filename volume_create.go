@@ -46,13 +46,13 @@ func travisTesting(fileName string) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(ptTable)
+	fmt.Println(string(ptTable))
 
 	mounts, err := exec.Command("/usr/bin/cat", "/proc/mounts").CombinedOutput()
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(mounts)
+	fmt.Println(string(mounts))
 }
 
 func parseYAML() []*Partition {
@@ -99,12 +99,12 @@ func createVolume(
 			"--sizelimit", strconv.FormatInt(partition.Length, 10),
 			partition.Device, fileName).CombinedOutput()
 		if err != nil {
-			fmt.Println("losetup", err, losetupOut, partition.Device)
+			fmt.Println("losetup", err, string(losetupOut), partition.Device)
 		}
 		formatOut, err := exec.Command(
 			partition.FormatCommand, partition.Device).CombinedOutput()
 		if err != nil {
-			fmt.Println(partition.FormatCommand, err, formatOut)
+			fmt.Println(partition.FormatCommand, err, string(formatOut))
 		}
 		mntPath := fmt.Sprintf("%s%s%d", "/mnt/", "hd1p", counter)
 		err = os.Mkdir(mntPath, 0644)
@@ -134,12 +134,12 @@ func createPartitionTable(fileName string, partitions []*Partition) {
 	sgdiskOut, err := exec.Command(
 		"/sbin/sgdisk", opts...).CombinedOutput()
 	if err != nil {
-		fmt.Println("sgdisk", err, sgdiskOut)
+		fmt.Println("sgdisk", err, string(sgdiskOut))
 	}
 
 	kpartxOut, err := exec.Command("/usr/sbin/kpartx", "test.img").CombinedOutput()
 	if err != nil {
-		fmt.Println("kpartx", err, kpartxOut)
+		fmt.Println("kpartx", err, string(kpartxOut))
 	}
 }
 
@@ -148,7 +148,7 @@ func mountPartitions(partitions []*Partition) {
 		mountOut, err := exec.Command(
 			"/usr/bin/mount", partition.Device, partition.MountPath).CombinedOutput()
 		if err != nil {
-			fmt.Println("mount", err, mountOut)
+			fmt.Println("mount", err, string(mountOut))
 		}
 	}
 }
@@ -184,7 +184,7 @@ func createFiles(partitions []*Partition) {
 				writeStringOut, err := writer.WriteString(
 					strings.Join(file.Contents, "\n"))
 				if err != nil {
-					fmt.Println("writeString", err, writeStringOut)
+					fmt.Println("writeString", err, string(writeStringOut))
 				}
 				writer.Flush()
 			}
@@ -197,7 +197,7 @@ func unmountPartitions(partitions []*Partition) {
 		umountOut, err := exec.Command(
 			"/usr/bin/umount", partition.Device, "-l").CombinedOutput()
 		if err != nil {
-			fmt.Println("umount", err, umountOut)
+			fmt.Println("umount", err, string(umountOut))
 		}
 	}
 }

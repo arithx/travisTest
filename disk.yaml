@@ -1,9 +1,9 @@
 - number: 1
-  label: BTRFS Part
+  label: EXT4 Part1
   device: /dev/loop6
   offset: 1048576
   length: 5160448
-  formatcommand: /usr/sbin/mkfs.btrfs
+  formatcommand: /usr/sbin/mkfs.ext4
   files:
   - name: multiLine
     path: path/example
@@ -33,7 +33,7 @@
   formatcommand: /usr/sbin/mkfs.ext2
   files: []
 - number: 4
-  label: Ext4 Part
+  label: Ext4 Part2
   device: /dev/loop5
   offset: 9321984
   length: 10321408
