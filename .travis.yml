@@ -2,4 +2,4 @@ language: go
 sudo: required
 script:
     - go install
-    - source $GOPATH/bin/volume_create
+    - sudo $GOPATH/bin/volume_create
