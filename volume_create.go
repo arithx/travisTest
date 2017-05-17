@@ -104,12 +104,12 @@ func createVolume(
 	// loopback device, then partition the block, create the mnt directory,
 	// and update the mntPath in the partitions struct
 	for counter, partition := range partitions {
-		if if partition.Device == "" {
+		if partition.Device == "" {
 			device, err := exec.Command("/sbin/losetup", "--find").CombinedOutput()
 			if err != nil {
 				fmt.Println("losetup --find", err)
 			}
-			partition.Device = strings.TrimSpace(device)
+			partition.Device = strings.TrimSpace(string(device))
 		}
 		losetupOut, err := exec.Command(
 			"/sbin/losetup", "-o", strconv.FormatInt(partition.Offset, 10),
