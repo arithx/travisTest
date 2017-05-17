@@ -2,6 +2,7 @@ language: go
 sudo: required
 before_install:
     - sudo apt-get update
+    - sudo /bin/echo "deb http://us.archive.ubuntu.com/ubuntu vivid main universe" >> /etc/apt/sources.list
     - sudo apt-get install gdisk cgpt
 script:
     - echo $(which cgpt)
