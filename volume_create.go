@@ -33,6 +33,13 @@ type Partition struct {
 
 func main() {
     partitions := parseYAML()
+	dumpYAML(partitions)
+
+	mounts, err := exec.Command("/usr/bin/cat", "/proc/mounts").CombinedOutput()
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(string(mounts))
 	createVolume("test.img", 10*1024*1024, 20, 16, 63, partitions)
 	mountPartitions(partitions)
 	createFiles(partitions)
