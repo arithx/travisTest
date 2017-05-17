@@ -1,9 +1,7 @@
 language: go
 sudo: required
 before_install:
-    - sudo /bin/echo "deb http://us.archive.ubuntu.com/ubuntu vivid main universe" >> /etc/apt/sources.list
     - sudo apt-get update
-    - sudo apt-get install gdisk cgpt
+    - sudo apt-get install gdisk
 script:
-    - echo $(which cgpt)
     - sudo -E $(which go) run volume_create.go

@@ -4,6 +4,7 @@
   offset: 1048576
   length: 5160448
   formatcommand: /sbin/mkfs.ext4
+  hybrid: true
   files:
   - name: multiLine
     path: path/example

@@ -28,11 +28,13 @@ type Partition struct {
 	Length        int64 `yaml:"length"`
 	FormatCommand string `yaml:"formatcommand"`
 	MountPath     string `yaml:"mountpath,omitempty"`
+	Hybrid		  bool `yaml:hybrid,omitempty`
 	Files         []File `yaml:"files"`
 }
 
 func main() {
     partitions := parseYAML()
+	dumpYAML(partitions)
 	createVolume("test.img", 10*1024*1024, 20, 16, 63, partitions)
 	mountPartitions(partitions)
 	createFiles(partitions)
@@ -42,7 +44,7 @@ func main() {
 
 func travisTesting(fileName string) {
 	ptTable, err := exec.Command(
-		"/sbin/fdisk", "-l", fileName).CombinedOutput()
+		"/sbin/sgdisk", "-p", fileName).CombinedOutput()
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -67,6 +69,7 @@ func parseYAML() []*Partition {
 		if part.GUID == "" {
 			part.GUID = generateUUID()
 		}
+		align(part)
 	}
 
 	return p
@@ -132,13 +135,6 @@ func align(partition *Partition) {
 }
 
 func createPartitionTable(fileName string, partitions []*Partition) {
-	//cpgtCreate, err := exec.Command("/")
-	for _, part := range partitions {
-		fmt.Println(part.Label)
-	}
-}
-
-func createPartitionTableSgdisk(fileName string, partitions []*Partition) {
 	opts := []string{fileName, "--zap-all", "-g"}
 	for _, p := range partitions {
 		opts = append(opts, fmt.Sprintf(
@@ -152,6 +148,9 @@ func createPartitionTableSgdisk(fileName string, partitions []*Partition) {
 		if p.GUID != "" {
 			opts = append(opts, fmt.Sprintf(
 				"--partition-guid=%d:%s", p.Number, p.GUID))
+		}
+		if p.Hybrid {
+			opts = append(opts, fmt.Sprintf("-A=%d:set:2", p.Number))
 		}
 	}
 	sgdiskOut, err := exec.Command(
