@@ -120,6 +120,8 @@ func createVolume(
 		}
 		partition.MountPath = mntPath
 	}
+
+	createPartitionTable(fileName, partitions)
 }
 
 func createPartitionTable(fileName string, partitions []*Partition) {
