@@ -58,7 +58,9 @@ func travisTesting(fileName string, partitions []*Partition) {
 	fmt.Println(string(mounts))
 
 	for _, p := range partitions {
-		sgdisk, err := exec.Command("/sbin/sgdisk", "-i", p.Number, fileName).CombinedOutput()
+		sgdisk, err := exec.Command(
+			"/sbin/sgdisk", "-i", strconv.Itoa(p.Number),
+			fileName).CombinedOutput()
 		if err != nil {
 			fmt.Println(err)
 		}
