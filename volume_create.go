@@ -40,7 +40,7 @@ func main() {
 	travisTesting("test.img")
 }
 
-func travisTesting(fileName) {
+func travisTesting(fileName string) {
 	ptTable, err := exec.Command(
 		"/usr/sbin/fdisk", "-l", fileName).CombinedOutput()
 	if err != nil {
@@ -204,6 +204,6 @@ func unmountPartitions(partitions []*Partition) {
 
 func validatePartitions(partitions []*Partition) {
 	for _, partition := range partitions {
-
+		fmt.Println(partition.Label)
 	}
 }
