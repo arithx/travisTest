@@ -3,38 +3,38 @@ package main
 import (
 	"bufio"
 	"fmt"
-    "io/ioutil"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 
-    "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 type File struct {
-	Name     string `yaml:"name"`
-	Path     string `yaml:"path"`
+	Name     string   `yaml:"name"`
+	Path     string   `yaml:"path"`
 	Contents []string `yaml:"contents,omitempty"`
 }
 
 type Partition struct {
-	Number        int `yaml:"number"`
-	Label         string `yaml:"label"`
-	TypeCode      string `yaml:"typecode,omitempty"`
-	TypeGUID      string `yaml:"typeguid,omitempty"`
-	GUID          string `yaml:"guid,omitempty"`
-	Device        string `yaml:"device,omitempty"`
-	Offset        int `yaml:"offset,omitempty"`
-	Length        int `yaml:"length"`
+	Number         int    `yaml:"number"`
+	Label          string `yaml:"label"`
+	TypeCode       string `yaml:"typecode,omitempty"`
+	TypeGUID       string `yaml:"typeguid,omitempty"`
+	GUID           string `yaml:"guid,omitempty"`
+	Device         string `yaml:"device,omitempty"`
+	Offset         int    `yaml:"offset,omitempty"`
+	Length         int    `yaml:"length"`
 	FilesystemType string `yaml:"filesystemtype"`
-	MountPath     string `yaml:"mountpath,omitempty"`
-	Hybrid		  bool `yaml:hybrid,omitempty`
-	Files         []File `yaml:"files"`
+	MountPath      string `yaml:"mountpath,omitempty"`
+	Hybrid         bool   `yaml:hybrid,omitempty`
+	Files          []File `yaml:"files"`
 }
 
 func main() {
-    partitions := parseYAML()
+	partitions := parseYAML()
 	createVolume("test.img", 10*1024*1024, 20, 16, 63, partitions)
 	dumpYAML(partitions)
 	mountPartitions(partitions)
@@ -69,12 +69,12 @@ func travisTesting(fileName string, partitions []*Partition) {
 }
 
 func parseYAML() []*Partition {
-    dat, err := ioutil.ReadFile("disk.yaml")
-    if err != nil {
-        fmt.Println(err, dat)
-    }
-    p := []*Partition{}
-    err = yaml.Unmarshal(dat, &p)
+	dat, err := ioutil.ReadFile("disk.yaml")
+	if err != nil {
+		fmt.Println(err, dat)
+	}
+	p := []*Partition{}
+	err = yaml.Unmarshal(dat, &p)
 
 	for _, part := range p {
 		if part.GUID == "" {
@@ -199,7 +199,7 @@ func formatEXT(partition *Partition) {
 }
 
 func formatBTRFS(partition *Partition) {
-	opts := []string{"--byte-count", strconv.Itoa(partition.Length/4096)}
+	opts := []string{"--byte-count", strconv.Itoa(partition.Length / 4096)}
 	if partition.Label != "" {
 		opts = append(opts, "--label", partition.Label)
 	}
@@ -225,7 +225,7 @@ func setOffsets(partitions []*Partition) {
 	for _, p := range partitions {
 		offset = align(offset, 4096)
 		p.Offset = offset * 512
-		offset += p.Length / 512 + 1
+		offset += p.Length/512 + 1
 		// have to add 1 to avoid cases where partition boundaries overlap
 	}
 }
@@ -239,7 +239,7 @@ func createPartitionTable(fileName string, partitions []*Partition) {
 		}
 		opts = append(opts, fmt.Sprintf(
 			"--new=%d:%d:%d", p.Number, p.Offset/512,
-			(p.Offset/512 + p.Length/512)))
+			(p.Offset/512+p.Length/512)))
 		opts = append(opts, fmt.Sprintf(
 			"--change-name=%d:%s", p.Number, p.Label))
 		if p.TypeGUID != "" {
