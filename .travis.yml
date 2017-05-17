@@ -1,4 +1,11 @@
 language: go
 sudo: required
 script:
+    - echo $(which cat)
+    - echo $(which mkfs.ext4)
+    - echo $(which mkfs.vfat)
+    - echo $(which mkfs.ext2)
+    - echo $(which mount)
+    - echo $(which losetup)
+    - echo $(which fdisk)
     - sudo -E $(which go) run volume_create.go

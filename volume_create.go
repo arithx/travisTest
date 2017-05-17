@@ -35,7 +35,7 @@ func main() {
     partitions := parseYAML()
 	dumpYAML(partitions)
 
-	mounts, err := exec.Command("/usr/bin/cat", "/proc/mounts").CombinedOutput()
+	mounts, err := exec.Command("/bin/cat", "/proc/mounts").CombinedOutput()
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -49,13 +49,13 @@ func main() {
 
 func travisTesting(fileName string) {
 	ptTable, err := exec.Command(
-		"/usr/sbin/fdisk", "-l", fileName).CombinedOutput()
+		"/sbin/fdisk", "-l", fileName).CombinedOutput()
 	if err != nil {
 		fmt.Println(err)
 	}
 	fmt.Println(string(ptTable))
 
-	mounts, err := exec.Command("/usr/bin/cat", "/proc/mounts").CombinedOutput()
+	mounts, err := exec.Command("/bin/cat", "/proc/mounts").CombinedOutput()
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -102,7 +102,7 @@ func createVolume(
 	// and update the mntPath in the partitions struct
 	for counter, partition := range partitions {
 		losetupOut, err := exec.Command(
-			"/usr/sbin/losetup", "-o", strconv.FormatInt(partition.Offset, 10),
+			"/sbin/losetup", "-o", strconv.FormatInt(partition.Offset, 10),
 			"--sizelimit", strconv.FormatInt(partition.Length, 10),
 			partition.Device, fileName).CombinedOutput()
 		if err != nil {
@@ -144,7 +144,7 @@ func createPartitionTable(fileName string, partitions []*Partition) {
 		fmt.Println("sgdisk", err, string(sgdiskOut))
 	}
 
-	kpartxOut, err := exec.Command("/usr/sbin/kpartx", "test.img").CombinedOutput()
+	kpartxOut, err := exec.Command("/sbin/kpartx", "test.img").CombinedOutput()
 	if err != nil {
 		fmt.Println("kpartx", err, string(kpartxOut))
 	}
@@ -153,7 +153,7 @@ func createPartitionTable(fileName string, partitions []*Partition) {
 func mountPartitions(partitions []*Partition) {
 	for _, partition := range partitions {
 		mountOut, err := exec.Command(
-			"/usr/bin/mount", partition.Device, partition.MountPath).CombinedOutput()
+			"/bin/mount", partition.Device, partition.MountPath).CombinedOutput()
 		if err != nil {
 			fmt.Println("mount", err, string(mountOut))
 		}
@@ -202,7 +202,7 @@ func createFiles(partitions []*Partition) {
 func unmountPartitions(partitions []*Partition) {
 	for _, partition := range partitions {
 		umountOut, err := exec.Command(
-			"/usr/bin/umount", partition.Device, "-l").CombinedOutput()
+			"/bin/umount", partition.Device, "-l").CombinedOutput()
 		if err != nil {
 			fmt.Println("umount", err, string(umountOut))
 		}
