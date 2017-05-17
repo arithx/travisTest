@@ -3,7 +3,7 @@
   device: /dev/loop6
   offset: 1048576
   length: 5160448
-  formatcommand: /usr/sbin/mkfs.ext4
+  formatcommand: /sbin/mkfs.ext4
   files:
   - name: multiLine
     path: path/example
@@ -23,19 +23,19 @@
   device: /dev/loop2
   offset: 5160960
   length: 7740928
-  formatcommand: /usr/sbin/mkfs.vfat
+  formatcommand: /sbin/mkfs.vfat
   files: []
 - number: 3
   label: Ext2 Part
   device: /dev/loop3
   offset: 7741440
   length: 9289216
-  formatcommand: /usr/sbin/mkfs.ext2
+  formatcommand: /sbin/mkfs.ext2
   files: []
 - number: 4
   label: Ext4 Part2
   device: /dev/loop5
   offset: 9321984
   length: 10321408
-  formatcommand: /usr/sbin/mkfs.ext4
+  formatcommand: /sbin/mkfs.ext4
   files: []
