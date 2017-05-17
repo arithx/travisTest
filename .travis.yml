@@ -1,5 +1,7 @@
 language: go
 sudo: required
 script:
+    - sudo apt-get update
+    - sudo apt-get install gdisk
     - echo $(which sgdisk)
     - sudo -E $(which go) run volume_create.go
