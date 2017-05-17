@@ -104,6 +104,9 @@ func createVolume(
 	// loopback device, then partition the block, create the mnt directory,
 	// and update the mntPath in the partitions struct
 	for counter, partition := range partitions {
+		if partition.TypeGUID == "blank" {
+			continue
+		}
 		if partition.Device == "" {
 			device, err := exec.Command("/sbin/losetup", "--find").CombinedOutput()
 			if err != nil {
@@ -142,9 +145,12 @@ func align(partition *Partition) {
 }
 
 func createPartitionTable(fileName string, partitions []*Partition) {
-	opts := []string{fileName, "--zap-all", "-g"}
+	opts := []string{fileName}
 	hybrids := []int{}
 	for _, p := range partitions {
+		if p.TypeGUID == "blank" {
+			continue
+		}
 		opts = append(opts, fmt.Sprintf(
 			"--new=%d:%d:%d", p.Number, p.Offset/512, p.Length/512))
 		opts = append(opts, fmt.Sprintf(
