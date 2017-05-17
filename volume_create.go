@@ -26,7 +26,7 @@ type Partition struct {
 	Device        string `yaml:"device,omitempty"`
 	Offset        int64 `yaml:"offset"`
 	Length        int64 `yaml:"length"`
-	FormatCommand string `yaml:"formatcommand"`
+	FilesystemType string `yaml:"filesystemtype"`
 	MountPath     string `yaml:"mountpath,omitempty"`
 	Hybrid		  bool `yaml:hybrid,omitempty`
 	Files         []File `yaml:"files"`
@@ -121,11 +121,7 @@ func createVolume(
 		if err != nil {
 			fmt.Println("losetup", err, string(losetupOut), partition.Device)
 		}
-		formatOut, err := exec.Command(
-			partition.FormatCommand, partition.Device).CombinedOutput()
-		if err != nil {
-			fmt.Println(partition.FormatCommand, err, string(formatOut))
-		}
+		formatPartition(partition)
 		mntPath := fmt.Sprintf("%s%s%d", "/mnt/", "hd1p", counter)
 		err = os.Mkdir(mntPath, 0644)
 		if err != nil {
@@ -135,6 +131,72 @@ func createVolume(
 	}
 
 	createPartitionTable(fileName, partitions)
+}
+
+func formatPartition(partition *Partition) {
+	partition.FilesystemType {
+	case "vfat":
+		formatVFAT(partition)
+	case "ext2", "ext4":
+		formatEXT(partition)
+	case "btrfs":
+		formatBTRFS(partition)
+	default:
+		fmt.Println("Not sure what this is.")
+	}
+}
+
+func formatVFAT(partition *Partition) {
+	opts := []string{}
+	if partition.Label != "" {
+		opts = append(opts, "-n", partition.Label)
+	}
+	opts = append(
+		opts, partition.Device, strconv.FormatInt(partition.Length, 10))
+	out, err := exec.Command("/sbin/mkfs.vfat", opts...).CombinedOutput()
+	if err != nil {
+		fmt.Println("mkfs.vfat", err, string(out))
+	}
+}
+
+func formatEXT(partition *Partition) {
+	out, err := exec.Command(
+		"/sbin/mke2fs", "-q", "-t", partition.FilesystemType, "-b", "4096",
+		"-i", "4096", "-I", "128", partition.Device,
+		strconv.FormatInt(partition.Length, 10)).CombinedOutput()
+	if err != nil {
+		fmt.Println("mke2fs", err, string(out))
+	}
+
+	opts := []string{"-e", "remount-ro"}
+	if partition.Label != "" {
+		opts = append(opts, "-L", partition.Label)
+	}
+
+	if partition.Type == "coreos-usr" {
+		opts = append(
+			opts, "-U", "clear", "-T", "20091119110000", "-c", "0", "-i", "0",
+			"-m", "0", "-r", "0")
+	}
+	opts = append(opts, partition.Device)
+	tuneOut, err := exec.Command("/sbin/tune2fs", opts...).CombinedOutput()
+	if err != nil {
+		fmt.Println("tune2fs", err, string(tuneOut))
+	}
+}
+
+func formatBTRFS(partition *Partition) {
+	opts := []string{"--byte-count", partition.Length}
+	if partition.Label != "" {
+		opts = append(opts, "--label", partition.Label)
+	}
+	opts = append(opts, partition.Device)
+	out, err := exec.Command("/sbin/mkfs.btrfs", opts...).CombinedOutput()
+	if err != nil {
+		fmt.Println("mkfs.btrfs", err, string(out))
+	}
+
+	// todo: subvolumes?
 }
 
 func align(partition *Partition) {

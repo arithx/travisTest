@@ -2,7 +2,7 @@
   label: EXT4 Part1
   offset: 1048576
   length: 5160448
-  formatcommand: /sbin/mkfs.ext4
+  filesystemtype: ext4
   hybrid: true
   files:
   - name: multiLine
@@ -22,17 +22,17 @@
   label: VFAT Part
   offset: 5160960
   length: 7740928
-  formatcommand: /sbin/mkfs.vfat
+  filesystemtype: mkfs.vfat
   files: []
 - number: 3
   label: Ext2 Part
   offset: 7741440
   length: 9289216
-  formatcommand: /sbin/mkfs.ext2
+  filesystemtype: mkfs.ext2
   files: []
 - number: 4
   label: Ext4 Part2
   offset: 9321984
   length: 10321408
-  formatcommand: /sbin/mkfs.ext4
+  filesystemtype: mkfs.ext4
   files: []
