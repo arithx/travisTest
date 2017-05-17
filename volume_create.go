@@ -33,13 +33,6 @@ type Partition struct {
 
 func main() {
     partitions := parseYAML()
-	dumpYAML(partitions)
-
-	mounts, err := exec.Command("/bin/cat", "/proc/mounts").CombinedOutput()
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(string(mounts))
 	createVolume("test.img", 10*1024*1024, 20, 16, 63, partitions)
 	mountPartitions(partitions)
 	createFiles(partitions)
@@ -125,7 +118,7 @@ func createVolume(
 }
 
 func createPartitionTable(fileName string, partitions []*Partition) {
-	opts := []string{fileName}
+	opts := []string{fileName, "--zap-all"}
 	for _, p := range partitions {
 		opts = append(opts, fmt.Sprintf(
 			"--new=%d:%d:%d", p.Number, p.Offset/512, p.Length/512))
