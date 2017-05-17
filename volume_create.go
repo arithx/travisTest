@@ -21,6 +21,7 @@ type File struct {
 type Partition struct {
 	Number        int `yaml:"number"`
 	Label         string `yaml:"label"`
+	TypeCode      string `yaml:"typecode,omitempty"`
 	TypeGUID      string `yaml:"typeguid,omitempty"`
 	GUID          string `yaml:"guid,omitempty"`
 	Device        string `yaml:"device,omitempty"`
@@ -39,10 +40,10 @@ func main() {
 	mountPartitions(partitions)
 	createFiles(partitions)
 	//unmountPartitions(partitions)
-	travisTesting("test.img")
+	travisTesting("test.img", partitions)
 }
 
-func travisTesting(fileName string) {
+func travisTesting(fileName string, partitions []*Partition) {
 	ptTable, err := exec.Command(
 		"/sbin/sgdisk", "-p", fileName).CombinedOutput()
 	if err != nil {
@@ -55,6 +56,14 @@ func travisTesting(fileName string) {
 		fmt.Println(err)
 	}
 	fmt.Println(string(mounts))
+
+	for _, p := range partitions {
+		sgdisk, err := exec.Command("/sbin/sgdisk", "-i", p.Number, fileName).CombinedOutput()
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println(string(sgdisk))
+	}
 }
 
 func parseYAML() []*Partition {
@@ -106,7 +115,7 @@ func createVolume(
 	// loopback device, then partition the block, create the mnt directory,
 	// and update the mntPath in the partitions struct
 	for counter, partition := range partitions {
-		if partition.TypeGUID == "blank" {
+		if partition.TypeCode == "blank" {
 			continue
 		}
 		if partition.Device == "" {
@@ -175,7 +184,7 @@ func formatEXT(partition *Partition) {
 		opts = append(opts, "-L", partition.Label)
 	}
 
-	if partition.TypeGUID == "coreos-usr" {
+	if partition.TypeCode == "coreos-usr" {
 		opts = append(
 			opts, "-U", "clear", "-T", "20091119110000", "-c", "0", "-i", "0",
 			"-m", "0", "-r", "0")
@@ -214,7 +223,8 @@ func setOffsets(partitions []*Partition) {
 	for _, p := range partitions {
 		offset = align(offset, 4096)
 		p.Offset = offset * 512
-		offset += p.Length / 512
+		offset += p.Length / 512 + 1
+		// have to add 1 to avoid cases where partition boundaries overlap
 	}
 }
 
@@ -222,7 +232,7 @@ func createPartitionTable(fileName string, partitions []*Partition) {
 	opts := []string{fileName}
 	hybrids := []int{}
 	for _, p := range partitions {
-		if p.TypeGUID == "blank" {
+		if p.TypeCode == "blank" {
 			continue
 		}
 		opts = append(opts, fmt.Sprintf(
@@ -273,7 +283,7 @@ func mountPartitions(partitions []*Partition) {
 }
 
 func updateTypeGUID(partition *Partition) {
-	switch partition.TypeGUID {
+	switch partition.TypeCode {
 	case "coreos-resize":
 		partition.TypeGUID = "3884DD41-8582-4404-B9A8-E9B84F2DF50E"
 	case "data":
@@ -284,10 +294,10 @@ func updateTypeGUID(partition *Partition) {
 		partition.TypeGUID = "21686148-6449-6E6F-744E-656564454649"
 	case "efi":
 		partition.TypeGUID = "C12A7328-F81F-11D2-BA4B-00A0C93EC93B"
-	case "":
+	case "", "blank":
 		return
 	default:
-		fmt.Println("Unknown TypeCode", partition.TypeGUID)
+		fmt.Println("Unknown TypeCode", partition.TypeCode)
 	}
 }
 
