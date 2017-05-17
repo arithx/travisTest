@@ -124,6 +124,13 @@ func createVolume(
 	createPartitionTable(fileName, partitions)
 }
 
+func align(partition *Partition) {
+	offset := partition.Offset % 2048
+	if offset != 0 {
+		partition.Offset += 2048 - offset
+	}
+}
+
 func createPartitionTable(fileName string, partitions []*Partition) {
 	//cpgtCreate, err := exec.Command("/")
 	for _, part := range partitions {
@@ -184,7 +191,7 @@ func generateUUID() string {
 	if err != nil {
 		fmt.Println("uuidgen", err)
 	}
-	return string(output)
+	return string(out)
 }
 
 func createFiles(partitions []*Partition) {
