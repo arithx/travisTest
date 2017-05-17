@@ -118,7 +118,7 @@ func createVolume(
 }
 
 func createPartitionTable(fileName string, partitions []*Partition) {
-	opts := []string{fileName, "--zap-all"}
+	opts := []string{fileName, "--zap-all", "-g"}
 	for _, p := range partitions {
 		opts = append(opts, fmt.Sprintf(
 			"--new=%d:%d:%d", p.Number, p.Offset/512, p.Length/512))
