@@ -1,4 +1,4 @@
 language: go
 sudo: required
 script:
-    - sudo -E go run volume_create.go
+    - sudo -E $(which go) run volume_create.go
