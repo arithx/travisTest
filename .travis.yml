@@ -1,0 +1,4 @@
+language: go
+sudo: required
+script:
+    - source $GOPATH/bin/volume_create
