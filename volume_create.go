@@ -52,11 +52,11 @@ func main() {
 }
 
 func calculateImageSize(partitions []*Partition) int64 {
-	size := int64(63 * 1024)
+	size := int64(63*512)
 	for _, p := range partitions {
-		size += int64(p.Length*1024)
+		size += int64(align(p.Length, 512)*512)
 	}
-	size = size + int64(5*1024*1024) // add 5 MiBs for alignment/offset shifts
+	size = size + int64(4096*512) // extra room to allow for alignments
 	fmt.Println(size)
 	return size
 }

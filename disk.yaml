@@ -3,6 +3,7 @@
   typecode: efi
   length: 262144
   filesystemtype: vfat
+  hybrid: true
   files:
   - name: multiLine
     path: path/example
@@ -53,5 +54,5 @@
 - number: 9
   label: ROOT
   typecode: coreos-resize
-  length: 4427776
+  length: 12943360
   filesystemtype: ext4
