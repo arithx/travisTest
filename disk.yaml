@@ -1,8 +1,4 @@
 - number: 1
-  label: BIOS-BOOT
-  typecode: bios
-  length: 4096
-- number: 2
   label: EFI-SYSTEM
   typecode: efi
   length: 262144
@@ -21,6 +17,10 @@
     path: empty
   - name: noPath
     path: ""
+- number: 2
+  label: BIOS-BOOT
+  typecode: bios
+  length: 4096
 - number: 3
   label: USR-A
   guid: 7130c94a-213a-4e5a-8e26-6cce9662f132

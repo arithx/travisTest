@@ -131,27 +131,15 @@ func createVolume(
 		fmt.Println("truncate", err)
 	}
 
-	// Loop through each partition passed in, run losetup to assign it a
-	// loopback device, then partition the block, create the mnt directory,
-	// and update the mntPath in the partitions struct
+	loopDevice := createPartitionTable(fileName, partitions)
+
 	for counter, partition := range partitions {
 		if partition.TypeCode == "blank" {
 			continue
 		}
-		if partition.Device == "" {
-			device, err := exec.Command("/sbin/losetup", "--find").CombinedOutput()
-			if err != nil {
-				fmt.Println("losetup --find", err)
-			}
-			partition.Device = strings.TrimSpace(string(device))
-		}
-		losetupOut, err := exec.Command(
-			"/sbin/losetup", "-o", strconv.Itoa(partition.Offset),
-			"--sizelimit", strconv.Itoa(partition.Length),
-			partition.Device, fileName).CombinedOutput()
-		if err != nil {
-			fmt.Println("losetup", err, string(losetupOut), partition.Device)
-		}
+
+		partition.Device = fmt.Sprintf(
+			"/dev/mapper/%sp%d", loopDevice, partition.Number)
 		formatPartition(partition)
 		mntPath := fmt.Sprintf("%s%s%d", "/mnt/", "hd1p", counter)
 		err = os.Mkdir(mntPath, 0644)
@@ -160,8 +148,6 @@ func createVolume(
 		}
 		partition.MountPath = mntPath
 	}
-
-	createPartitionTable(fileName, partitions)
 }
 
 func formatPartition(partition *Partition) {
@@ -186,11 +172,8 @@ func formatVFAT(partition *Partition) {
 		opts = append(opts, "-n", partition.Label)
 	}
 	opts = append(
-		opts, partition.Device, strconv.Itoa(partition.Length/1024))
+		opts, partition.Device)
 	out, err := exec.Command("/sbin/mkfs.vfat", opts...).CombinedOutput()
-	out, err = exec.Command("/sbin/mkfs.vfat", opts...).CombinedOutput()
-	fmt.Println(fmt.Sprintf("%s %s", "/sbin/mkfs.vfat", strings.Join(opts, " ")))
-	fmt.Println(string(out))
 	if err != nil {
 		fmt.Println("mkfs.vfat", err, string(out))
 	}
@@ -199,8 +182,7 @@ func formatVFAT(partition *Partition) {
 func formatEXT(partition *Partition) {
 	out, err := exec.Command(
 		"/sbin/mke2fs", "-q", "-t", partition.FilesystemType, "-b", "4096",
-		"-i", "4096", "-I", "128", partition.Device,
-		strconv.Itoa(partition.Length/4096)).CombinedOutput()
+		"-i", "4096", "-I", "128", partition.Device).CombinedOutput()
 	if err != nil {
 		fmt.Println("mke2fs", err, string(out))
 	}
@@ -223,7 +205,7 @@ func formatEXT(partition *Partition) {
 }
 
 func formatBTRFS(partition *Partition) {
-	opts := []string{"--byte-count", strconv.Itoa(partition.Length / 4096)}
+	opts := []string{}
 	if partition.Label != "" {
 		opts = append(opts, "--label", partition.Label)
 	}
@@ -252,12 +234,11 @@ func setOffsets(partitions []*Partition) {
 		}
 		offset = align(offset, 4096)
 		p.Offset = offset
-		offset += p.Length + 1
-		// have to add 1 to avoid cases where partition boundaries overlap
+		offset += p.Length
 	}
 }
 
-func createPartitionTable(fileName string, partitions []*Partition) {
+func createPartitionTable(fileName string, partitions []*Partition) string {
 	opts := []string{fileName}
 	hybrids := []int{}
 	for _, p := range partitions {
@@ -294,10 +275,11 @@ func createPartitionTable(fileName string, partitions []*Partition) {
 		fmt.Println("sgdisk", err, string(sgdiskOut))
 	}
 
-	kpartxOut, err := exec.Command("/sbin/kpartx", "test.img").CombinedOutput()
+	kpartxOut, err := exec.Command("/sbin/kpartx", "-av", "test.img").CombinedOutput()
 	if err != nil {
 		fmt.Println("kpartx", err, string(kpartxOut))
 	}
+	return strings.Trim(strings.Split(string(kpartxOut), " ")[7], "/dev/")
 }
 
 func mountPartitions(partitions []*Partition) {
