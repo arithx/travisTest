@@ -41,6 +41,11 @@ func main() {
 	createFiles(partitions)
 	//unmountPartitions(partitions)
 	travisTesting("test.img", partitions)
+	valid := validatePartitions(partitions, partitions, "test.img")
+	if !valid {
+		os.Exit(1)
+	}
+	os.Exit(0)
 }
 
 func travisTesting(fileName string, partitions []*Partition) {
@@ -326,7 +331,7 @@ func generateUUID() string {
 	if err != nil {
 		fmt.Println("uuidgen", err)
 	}
-	return string(out)
+	return strings.TrimSpace(string(out))
 }
 
 func createFiles(partitions []*Partition) {
@@ -388,23 +393,48 @@ func validatePartitions(actual []*Partition, expected []*Partition,
 			return false
 		}
 		lines := strings.Split(string(sgdiskInfo), "\n")
-		actualTypeGUID := strings.Split(strings.Split(lines[0], ": ")[1], " ")[0]
-		actualGUID := strings.Split(strings.Split(lines[1], ": ")[1], " ")[0]
+		actualTypeGUID := strings.ToUpper(strings.TrimSpace(
+			strings.Split(strings.Split(lines[0], ": ")[1], " ")[0]))
+		actualGUID := strings.ToLower(strings.TrimSpace(
+			strings.Split(strings.Split(lines[1], ": ")[1], " ")[0]))
+		actualSectors := strings.Split(strings.Split(lines[4], ": ")[1], " ")[0]
 		actualLabel := strings.Split(strings.Split(lines[6], ": ")[1], "'")[1]
 
-		 if e.TypeGUID != actualTypeGUID || e.GUID != actualGUID ||
-		 		e.Label != actualLabel {
-			 return false
-		 }
+		// have to align the size to the nearest sector first
+		expectedSectors := align(e.Length, 512) / 512
 
-		 df, err := exec.Command(
-			 "df", "-T", "|", "grep", e.Device, "|", "tr", "-s", "' '", "|",
-			 "cut", "-d", "' '", "-f", "2").CombinedOutput()
+		if e.TypeGUID != actualTypeGUID {
+			fmt.Println("TypeGUID does not match!", e.TypeGUID, actualTypeGUID)
+			return false
+		}
+		if e.GUID != actualGUID {
+			fmt.Println("GUID does not match!", e.GUID, actualGUID)
+			return false
+		}
+		if e.Label != actualLabel {
+			fmt.Println("Label does not match!", e.Label, actualLabel)
+			return false
+		}
+		if strconv.Itoa(expectedSectors) != actualSectors {
+			fmt.Println(
+				"Sectors does not match!", expectedSectors, actualSectors)
+			return false
+		}
+
+		 df, err := exec.Command("/bin/df", "-T", e.Device).CombinedOutput()
 		 if err != nil {
-			 fmt.Println("df -T", err)
+			 fmt.Println("df -T", err, string(df))
+		 }
+		 lines = strings.Split(string(df), "\n")
+		 if len(lines) < 2 {
+			 fmt.Println("Couldn't verify FilesystemType")
 			 return false
 		 }
-		 if string(df) != e.FilesystemType {
+		 actualFilesystemType := removeEmpty(strings.Split(lines[1], " "))[1]
+
+		 if e.FilesystemType != actualFilesystemType {
+			 fmt.Println("FilesystemType does not match!",
+				 e.FilesystemType, actualFilesystemType)
 			 return false
 		 }
 	}
