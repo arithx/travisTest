@@ -368,8 +368,45 @@ func unmountPartitions(partitions []*Partition) {
 	}
 }
 
-func validatePartitions(partitions []*Partition) {
-	for _, partition := range partitions {
-		fmt.Println(partition.Label)
+func validatePartitions(actual []*Partition, expected []*Partition,
+						fileName string) bool {
+	for _, a := range actual {
+		for _, e := range expected {
+			if a.Number == e.Number {
+				e.Device = a.Device
+				break
+			}
+		}
 	}
+
+	for _, e := range expected {
+		sgdiskInfo, err := exec.Command(
+			"/sbin/sgdisk", "-i", strconv.Itoa(e.Number),
+			fileName).CombinedOutput()
+		if err != nil {
+			fmt.Println("sgdisk -i", strconv.Itoa(e.Number), err)
+			return false
+		}
+		lines := strings.Split(string(sgdiskInfo), "\n")
+		actualTypeGUID := strings.Split(strings.Split(lines[0], ": ")[1], " ")[0]
+		actualGUID := strings.Split(strings.Split(lines[1], ": ")[1], " ")[0]
+		actualLabel := strings.Split(strings.Split(lines[6], ": ")[1], "'")[1]
+
+		 if e.TypeGUID != actualTypeGUID || e.GUID != actualGUID ||
+		 		e.Label != actualLabel {
+			 return false
+		 }
+
+		 df, err := exec.Command(
+			 "df", "-T", "|", "grep", e.Device, "|", "tr", "-s", "' '", "|",
+			 "cut", "-d", "' '", "-f", "2").CombinedOutput()
+		 if err != nil {
+			 fmt.Println("df -T", err)
+			 return false
+		 }
+		 if string(df) != e.FilesystemType {
+			 return false
+		 }
+	}
+	return true
 }
