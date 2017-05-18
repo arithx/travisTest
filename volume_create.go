@@ -41,7 +41,9 @@ func main() {
 	createFiles(partitions)
 	//unmountPartitions(partitions)
 	travisTesting("test.img", partitions)
-	valid := validatePartitions(partitions, partitions, "test.img")
+	setExpectedPartitionsDrive(partitions, partitions)
+	valid := validatePartitions(partitions, "test.img")
+	valid = valid && validateFiles(partitions)
 	if !valid {
 		os.Exit(1)
 	}
@@ -373,8 +375,7 @@ func unmountPartitions(partitions []*Partition) {
 	}
 }
 
-func validatePartitions(actual []*Partition, expected []*Partition,
-						fileName string) bool {
+func setExpectedPartitionsDrive(actual[]*Partition, expected []*Partition) {
 	for _, a := range actual {
 		for _, e := range expected {
 			if a.Number == e.Number {
@@ -383,7 +384,9 @@ func validatePartitions(actual []*Partition, expected []*Partition,
 			}
 		}
 	}
+}
 
+func validatePartitions(expected []*Partition, fileName string) bool {
 	for _, e := range expected {
 		sgdiskInfo, err := exec.Command(
 			"/sbin/sgdisk", "-i", strconv.Itoa(e.Number),
@@ -437,6 +440,39 @@ func validatePartitions(actual []*Partition, expected []*Partition,
 				 e.FilesystemType, actualFilesystemType)
 			 return false
 		 }
+	}
+	return true
+}
+
+func validateFiles(expected []*Partition) bool {
+	for _, partition := range expected {
+		if partition.Files == nil {
+			continue
+		}
+		for _, file := range partition.Files {
+			path := strings.Join(removeEmpty([]string{
+				partition.MountPath, file.Path, file.Name}), "/")
+			if _, err := os.Stat(path); os.IsNotExist(err) {
+  				return false
+			}
+
+			if file.Contents != nil {
+				expectedContents := strings.Join(file.Contents, "\n")
+				dat, err := ioutil.ReadFile(path)
+				if err != nil {
+					fmt.Println("Error when reading file ", path)
+					return false
+				}
+
+				actualContents := string(dat)
+				if expectedContents != actualContents {
+					fmt.Println("Contents of file ", path, "do not match!")
+					fmt.Println(expectedContents)
+					fmt.Println(actualContents)
+					return false
+				}
+			}
+		}
 	}
 	return true
 }
