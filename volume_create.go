@@ -76,6 +76,9 @@ func travisTesting(fileName string, partitions []*Partition) {
 	fmt.Println(string(mounts))
 
 	for _, p := range partitions {
+		if p.TypeCode == "blank" {
+			continue
+		}
 		sgdisk, err := exec.Command(
 			"/sbin/sgdisk", "-i", strconv.Itoa(p.Number),
 			fileName).CombinedOutput()
@@ -307,6 +310,8 @@ func updateTypeGUID(partition *Partition) {
 		partition.TypeGUID = "21686148-6449-6E6F-744E-656564454649"
 	case "efi":
 		partition.TypeGUID = "C12A7328-F81F-11D2-BA4B-00A0C93EC93B"
+	case "coreos-reserved":
+		partition.TypeGUID = "C95DC21A-DF0E-4340-8D7B-26CBFA9A03E0"
 	case "", "blank":
 		return
 	default:
@@ -392,7 +397,7 @@ func setExpectedPartitionsDrive(actual[]*Partition, expected []*Partition) {
 
 func validatePartitions(expected []*Partition, fileName string) bool {
 	for _, e := range expected {
-		if e.TypeCode == "blank" || e.FilesystemType == "" {
+		if e.TypeCode == "blank" {
 			continue
 		}
 		sgdiskInfo, err := exec.Command(
@@ -429,6 +434,10 @@ func validatePartitions(expected []*Partition, fileName string) bool {
 			fmt.Println(
 				"Sectors does not match!", expectedSectors, actualSectors)
 			return false
+		}
+
+		if e.FilesystemType == "" {
+			continue
 		}
 
 		 df, err := exec.Command("/bin/df", "-T", e.Device).CombinedOutput()
