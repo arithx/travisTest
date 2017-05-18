@@ -1,9 +1,12 @@
 - number: 1
-  label: EXT4-Part1
-  length: 1048577
-  filesystemtype: ext4
-  typecode: coreos-resize
-  hybrid: true
+  label: BIOS-BOOT
+  typecode: bios
+  length: 4096
+- number: 2
+  label: EFI-SYSTEM
+  typecode: efi
+  length: 262144
+  filesystemtype: vfat
   files:
   - name: multiLine
     path: path/example
@@ -18,21 +21,37 @@
     path: empty
   - name: noPath
     path: ""
-- number: 2
-  label: VFAT-Part
-  length: 1348577
-  filesystemtype: vfat
-  typecode: data
-  files: []
 - number: 3
-  label: Ext2-Part
-  length: 1548577
-  filesystemtype: ext2
+  label: USR-A
+  guid: 7130c94a-213a-4e5a-8e26-6cce9662f132
   typecode: coreos-rootfs
-  files: []
+  length: 2097152
+  filesystemtype: ext2
 - number: 4
-  label: Ext4-Part2
-  length: 1848577
+  label: USR-B
+  guid: e03dd35c-7c2d-4a47-b3fe-27f15780a57c
+  typecode: coreos-rootfs
+  length: 2097152
+- number: 5
+  label: ROOT-C
+  guid: d82521b4-07ac-4f1c-8840-ddefedc332f3
+  typecode: blank
+  length: 0
+- number: 6
+  label: OEM
+  typecode: data
+  length: 262144
   filesystemtype: ext4
-  typecode: efi
-  files: []
+- number: 7
+  label: OEM-CONFIG
+  typecode: coreos-reserved
+  length: 131072
+- number: 8
+  label: coreos-reserved
+  typecode: blank
+  length: 0
+- number: 9
+  label: ROOT
+  typecode: coreos-resize
+  length: 4427776
+  filesystemtype: ext4
