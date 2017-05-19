@@ -8,10 +8,11 @@ addons:
     - gcc-aarch64-linux-gnu
     - libc6-dev-arm64-cross
     - libblkid-dev
+    - kpartx
 before_install:
     - sudo apt-get update
     - sudo apt-get install gdisk
 script:
     - git clone https://github.com/coreos/ignition
-    - sudo ignition/build
+    - sudo -i ignition ./build
     - sudo -E $(which go) run volume_create.go
