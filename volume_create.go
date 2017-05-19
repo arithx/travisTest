@@ -585,7 +585,7 @@ func validateFiles(expected []*Partition) bool {
 				partition.MountPath, file.Path, file.Name}), "/")
 			if _, err := os.Stat(path); os.IsNotExist(err) {
 				fmt.Println("File doesn't exist!", path)
-  				//return false
+  				return false
 			}
 
 			if file.Contents != nil {
@@ -593,7 +593,7 @@ func validateFiles(expected []*Partition) bool {
 				dat, err := ioutil.ReadFile(path)
 				if err != nil {
 					fmt.Println("Error when reading file ", path)
-					//return false
+					return false
 				}
 
 				actualContents := string(dat)
@@ -601,7 +601,7 @@ func validateFiles(expected []*Partition) bool {
 					fmt.Println("Contents of file ", path, "do not match!")
 					fmt.Println(expectedContents)
 					fmt.Println(actualContents)
-					//return false
+					return false
 				}
 			}
 		}
