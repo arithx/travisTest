@@ -9,9 +9,7 @@ addons:
     - libc6-dev-arm64-cross
     - libblkid-dev
     - kpartx
-before_install:
-    - sudo apt-get update
-    - sudo apt-get install gdisk
+    - gdisk
 script:
     - git clone https://github.com/coreos/ignition
     - sudo -i ignition ./build
