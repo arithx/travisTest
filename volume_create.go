@@ -43,7 +43,6 @@ func main() {
 	mountPartitions(in)
 	dumpYAML(in)
 	createFiles(in)
-	fmt.Println(validateFiles(in))
 	unmountPartitions(in, imgName)
 
 	// Ignition
@@ -52,12 +51,13 @@ func main() {
 	//runIgnition(ignition, "disk")
 	runIgnition(ignition, "files")
 
+	// Update out structure with mount points & devices
+	setExpectedPartitionsDrive(in, out)
+
 	// Validation
 	//setDevices(imgName, in)
-	mountPartitions(in)
-	fmt.Println(validateFiles(in))
-	travisTesting(imgName, in)
-	setExpectedPartitionsDrive(in, out)
+	mountPartitions(out)
+	travisTesting(imgName, out)
 	valid := validatePartitions(out, imgName)
 	valid = valid && validateFiles(out)
 	if !valid {
