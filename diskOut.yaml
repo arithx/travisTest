@@ -1,0 +1,63 @@
+- number: 1
+  label: EFI-SYSTEM
+  typecode: efi
+  length: 262144
+  filesystemtype: vfat
+  hybrid: true
+  files:
+  - name: multiLine
+    path: path/example
+    contents:
+    - line 1
+    - line 2
+  - name: singleLine
+    path: another/path/example
+    contents:
+    - single line
+  - name: emptyFile
+    path: empty
+  - name: noPath
+    path: ""
+- number: 2
+  label: BIOS-BOOT
+  typecode: bios
+  length: 4096
+- number: 3
+  label: USR-A
+  guid: 7130c94a-213a-4e5a-8e26-6cce9662f132
+  typecode: coreos-rootfs
+  length: 2097152
+  filesystemtype: ext2
+- number: 4
+  label: USR-B
+  guid: e03dd35c-7c2d-4a47-b3fe-27f15780a57c
+  typecode: coreos-rootfs
+  length: 2097152
+- number: 5
+  label: ROOT-C
+  guid: d82521b4-07ac-4f1c-8840-ddefedc332f3
+  typecode: blank
+  length: 0
+- number: 6
+  label: OEM
+  typecode: data
+  length: 262144
+  filesystemtype: ext4
+- number: 7
+  label: OEM-CONFIG
+  typecode: coreos-reserved
+  length: 131072
+- number: 8
+  label: coreos-reserved
+  typecode: blank
+  length: 0
+- number: 9
+  label: ROOT
+  typecode: coreos-resize
+  length: 12943360
+  filesystemtype: ext4
+  files:
+  - name: test
+    path: ignition/foo
+    contents:
+    - asdf

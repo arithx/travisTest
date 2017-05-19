@@ -3,5 +3,6 @@ sudo: required
 before_install:
     - sudo apt-get update
     - sudo apt-get install gdisk
+    - git clone https://github.com/coreos/ignition
 script:
     - sudo -E $(which go) run volume_create.go
