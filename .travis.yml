@@ -12,6 +12,7 @@ addons:
     - gdisk
 script:
     - git clone https://github.com/coreos/ignition
-    - ./build_ignition
+    - sudo -E env "PATH=$PATH" ./build_ignition
     - sudo -E $(which go) run volume_create.go
+    - cat /var/log/syslog | grep ignition
     - ls /var/log/
