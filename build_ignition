@@ -1,0 +1,6 @@
+#! /usr/bin/env bash
+
+set -eu
+
+chmod +x ignition/build
+source ignition/build
