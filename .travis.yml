@@ -11,6 +11,8 @@ addons:
     - kpartx
     - gdisk
 script:
-    - git clone https://github.com/coreos/ignition /root/ignition
-    - sudo 'cd /root/ignition; ./build'
+    - pwd
+    - git clone https://github.com/coreos/ignition
+    - ls ignition
+    - sudo 'cd ignition; ./build'
     - sudo -E $(which go) run volume_create.go
