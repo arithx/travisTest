@@ -14,5 +14,5 @@ script:
     - pwd
     - git clone https://github.com/coreos/ignition
     - ls ignition
-    - sudo 'cd ignition && ./build'
+    - sudo bash -c 'cd ignition; chmod +x build; ./build'
     - sudo -E $(which go) run volume_create.go
