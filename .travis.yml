@@ -12,6 +12,6 @@ addons:
     - gdisk
 script:
     - git clone https://github.com/coreos/ignition
-    - GOARCH="amd64" ./build;
+    - GOARCH="amd64"
     - sudo -E /bin/bash -c 'cd ignition; chmod +x build; ./build'
     - sudo -E $(which go) run volume_create.go
