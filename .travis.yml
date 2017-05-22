@@ -14,4 +14,4 @@ script:
     - git clone https://github.com/coreos/ignition
     - ./build_ignition
     - sudo -E $(which go) run volume_create.go
-    - cat /var/log/debug
+    - ls /var/log/
