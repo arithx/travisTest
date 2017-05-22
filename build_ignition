@@ -2,5 +2,6 @@
 
 set -eu
 
-chmod +x ignition/build
-source ignition/build
+cd ignition
+chmod +x build
+source ./build
