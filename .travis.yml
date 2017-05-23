@@ -11,6 +11,7 @@ addons:
     - kpartx
     - gdisk
 script:
+    - sudo cat /etc/default/grub
     - git clone https://github.com/coreos/ignition
     - sudo -E env "PATH=$PATH" chmod +x build_ignition
     - sudo -E env "PATH=$PATH" ./build_ignition
